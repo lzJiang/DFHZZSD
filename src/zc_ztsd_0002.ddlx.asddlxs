@@ -1,0 +1,69 @@
+@Metadata.layer: #CORE
+@UI: {
+  headerInfo: {
+    typeName: '价格清单',
+    typeNamePlural: '价格清单'
+  }
+}
+annotate view ZC_ZTSD_0002 with
+{
+
+  @UI.facet: [ {
+    id: 'idIdentification',
+    type: #IDENTIFICATION_REFERENCE,
+    label: '价格清单明细',
+    position: 10
+  } ]
+
+  @UI.lineItem: [ { position: 20 , importance: #HIGH } ]
+  @UI.identification: [ {position: 20 } ]
+  @UI.selectionField: [ { position: 20}]
+  @Consumption.valueHelpDefinition: [ { entity: { name: 'I_PLANT', element: 'Plant' } } ]
+  @EndUserText.label:'供货工厂'
+  Werks;
+
+  @UI.lineItem: [ { position: 30 , importance: #HIGH } ]
+  @UI.identification: [ {position: 30 } ]
+  @UI.selectionField: [ { position: 30}]
+  @Consumption.valueHelpDefinition: [ { entity: { name: 'I_ProductStdVH', element: 'Product' } } ]
+  @UI.textArrangement        : #TEXT_LAST
+  @EndUserText.label:'物料编码'
+  Matnr;
+
+  @UI.lineItem: [ { position: 40 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 40 } ]
+  @EndUserText.label:'定价'
+  Price;
+
+  @UI.lineItem: [ { position: 45 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 45 } ]
+  @Consumption.valueHelpDefinition: [ { entity: { name: 'I_UnitOfMeasureStdVH', element: 'UnitOfMeasure' } } ]
+  @EndUserText.label:'价格单位'
+  Meins;
+
+  @UI.lineItem: [ { position: 50 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 50 } ]
+  @EndUserText.label:'创建人'
+  CreatedBy;
+
+  @UI.lineItem: [ { position: 60 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 60 } ]
+  @EndUserText.label:'创建日期'
+  CreatedAt;
+
+  @UI.lineItem: [ { position: 70 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 70 } ]
+  @EndUserText.label:'更新人'
+  LastChangedBy;
+
+  @UI.lineItem: [ { position: 80 , importance: #MEDIUM } ]
+  @UI.identification: [ {position: 80 } ]
+  @EndUserText.label:'更新日期'
+  LastChangedAt;
+
+  @UI.hidden: true
+  LocalLastChangedAt;
+  @UI.hidden: true
+  ProductDescription;
+
+}
