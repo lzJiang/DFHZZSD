@@ -356,6 +356,7 @@ CLASS ZCL_SDI002_UTIL IMPLEMENTATION.
            customer_payment_terms     TYPE string,
            purchase_order_by_customer TYPE string,
            reference_sd_document      TYPE string,
+           sales_district             TYPE string,
            _item                      TYPE TABLE OF ty_item_return WITH DEFAULT KEY.
     TYPES END OF ty_return.
 
@@ -403,13 +404,18 @@ CLASS ZCL_SDI002_UTIL IMPLEMENTATION.
       IF fsysid = 'JXC' AND ls_req-sales_order_type = 'CBAR'.
         ls_req-sddocumentreason = '001'.
       ENDIF.
+      IF fsysid = 'JXC'.
+        ls_req-sales_district = 'Z00001'.
+      ELSEIF fsysid = 'XYW'.
+        ls_req-sales_district = 'Z00002'.
+      ENDIF.
       LOOP AT ls_req-to_item-results ASSIGNING FIELD-SYMBOL(<fs_item>).
         CLEAR:lv_flag_0.
         <fs_item>-material_by_customer = <fs_item>-underlying_purchase_order_item.
         CLEAR:<fs_item>-underlying_purchase_order_item.
         LOOP AT <fs_item>-to_pricing_element-results[] ASSIGNING FIELD-SYMBOL(<fs_price>).
           <fs_price>-condition_type = 'ZPR0'.
-          IF <fs_price>-condition_rate_value IS INITIAL OR <fs_price>-condition_rate_value = '0'.
+          IF <fs_price>-condition_rate_value IS INITIAL OR <fs_price>-condition_rate_value = '0' OR <fs_price>-condition_rate_value = '0.00'.
             lv_flag_0 = 'X'.
             <fs_price>-condition_rate_value = '1'.
           ENDIF.
@@ -452,8 +458,9 @@ CLASS ZCL_SDI002_UTIL IMPLEMENTATION.
       lt_mapping = VALUE #(
              ( abap = 'sales_order_type'                  json = 'SalesOrderType'              )
              ( abap = 'sales_organization'                json = 'SalesOrganization'           )
+             ( abap = 'sales_district'                    json = 'SalesDistrict'               )
              ( abap = 'sold_to_party'                     json = 'SoldToParty'                 )
-             ( abap = 'SDDocumentReason'                  json = 'SDDocumentReason'                 )
+             ( abap = 'SDDocumentReason'                  json = 'SDDocumentReason'            )
              ( abap = 'distribution_channel'              json = 'DistributionChannel'         )
              ( abap = 'organization_division'             json = 'OrganizationDivision'        )
              ( abap = 'transaction_currency'              json = 'TransactionCurrency'         )

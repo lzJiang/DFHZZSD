@@ -19,14 +19,16 @@ FUNCTION zzfm_sd_003.
   ENDLOOP.
 
   "获取销售订单类型
-  SELECT salesdocument,
-         salesdocumentitem,
-         sddocumentcategory,
-         orderquantityunit,
-         ordertobasequantitydnmntr,
-         ordertobasequantitynmrtr
-    FROM i_salesdocumentitem WITH PRIVILEGED ACCESS
-   WHERE salesdocument = @gv_salesdocument
+  SELECT a~salesdocument,
+         a~salesdocumentitem,
+         a~sddocumentcategory,
+         a~orderquantityunit,
+         a~baseunit,
+         a~product,
+         a~ordertobasequantitydnmntr,
+         a~ordertobasequantitynmrtr
+    FROM i_salesdocumentitem WITH PRIVILEGED ACCESS AS a
+   WHERE a~salesdocument = @gv_salesdocument
     INTO TABLE @DATA(lt_salesdocumentitem).
   READ TABLE lt_salesdocumentitem INTO DATA(ls_salesdocumentitem) INDEX 1.
   gv_sddocumentcategory = ls_salesdocumentitem-sddocumentcategory.
@@ -43,12 +45,14 @@ FUNCTION zzfm_sd_003.
     ENDCASE.
   ELSE.
 
-    SELECT purchaseorder AS salesdocument,
-           purchaseorderitem AS salesdocumentitem,
-           purchaseordercategory AS sddocumentcategory,
-           purchaseorderquantityunit AS orderquantityunit,
-           orderitemqtytobaseqtynmrtr AS ordertobasequantitydnmntr,
-           orderitemqtytobaseqtydnmntr AS ordertobasequantitynmrtr
+    SELECT a~purchaseorder AS salesdocument,
+           a~purchaseorderitem AS salesdocumentitem,
+           a~purchaseordercategory AS sddocumentcategory,
+           a~purchaseorderquantityunit AS orderquantityunit,
+           a~baseunit,
+           a~material AS product,
+           a~orderitemqtytobaseqtynmrtr AS ordertobasequantitydnmntr,
+           a~orderitemqtytobaseqtydnmntr AS ordertobasequantitynmrtr
       FROM i_purchaseorderitemapi01 WITH PRIVILEGED ACCESS AS a
      WHERE a~purchaseorder = @gv_salesdocument
       INTO TABLE @lt_salesdocumentitem.
@@ -74,7 +78,7 @@ FUNCTION zzfm_sd_003.
          b~salesdocumentitem,
          a~unitofmeasurecommercialname
     FROM i_unitofmeasurecommercialname WITH PRIVILEGED ACCESS AS a
-    JOIN @lt_salesdocumentitem AS b ON a~unitofmeasure = b~orderquantityunit
+    JOIN @lt_salesdocumentitem AS b ON a~unitofmeasure = b~baseunit
    WHERE a~language = 1
      INTO TABLE @DATA(lt_unit).
   DATA: lv_input  TYPE p DECIMALS 3,
@@ -85,7 +89,16 @@ FUNCTION zzfm_sd_003.
     IF ls_unit-unitofmeasurecommercialname <> <fs_item>-deliveryquantityunit.
       lv_input = <fs_item>-actualdeliveryquantity.
       READ TABLE lt_salesdocumentitem INTO ls_salesdocumentitem WITH KEY salesdocumentitem = <fs_item>-referencesddocumentitem.
-      lv_result = lv_input * ls_salesdocumentitem-ordertobasequantitydnmntr / ls_salesdocumentitem-ordertobasequantitynmrtr.
+
+      SELECT SINGLE a~quantitynumerator,a~quantitydenominator
+        FROM i_productunitsofmeasure WITH PRIVILEGED ACCESS AS a
+        JOIN i_unitofmeasurecommercialname WITH PRIVILEGED ACCESS as b ON a~AlternativeUnit = b~UnitOfMeasure
+                                                                      AND b~language = 1
+       WHERE product = @ls_salesdocumentitem-product
+         AND unitofmeasurecommercialname = @<fs_item>-deliveryquantityunit
+        INTO @DATA(ls_measure).
+
+      lv_result = lv_input * ls_measure-quantitynumerator / ls_measure-quantitydenominator.
       <fs_item>-actualdeliveryquantity =  lv_result.
 
       <fs_item>-deliveryquantityunit = ls_unit-unitofmeasurecommercialname.

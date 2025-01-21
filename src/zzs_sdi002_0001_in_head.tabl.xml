@@ -91,6 +91,14 @@
      <DATATYPE>STRG</DATATYPE>
      <MASK>  STRG</MASK>
     </DD03P>
+    <DD03P>
+     <FIELDNAME>SALES_DISTRICT</FIELDNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <INTTYPE>g</INTTYPE>
+     <INTLEN>000008</INTLEN>
+     <DATATYPE>STRG</DATATYPE>
+     <MASK>  STRG</MASK>
+    </DD03P>
    </DD03P_TABLE>
   </asx:values>
  </asx:abap>
