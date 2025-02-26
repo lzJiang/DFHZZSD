@@ -3,7 +3,6 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <INCLUDES>
-    <SOBJ_NAME>LZZFG_SD_007TOP</SOBJ_NAME>
     <SOBJ_NAME>SAPLZZFG_SD_007</SOBJ_NAME>
    </INCLUDES>
    <FUNCTIONS>

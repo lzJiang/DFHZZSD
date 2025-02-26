@@ -1,0 +1,34 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "社交电商事业部公司间价格清单",
+    "originalLanguage": "zh",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD"
+  },
+  "ui5AppDetails": {
+    "appId": "zzsdr001"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_E277D816C5DDD091800E29E4FCF4D1D15F946EF1_TM",
+    "semanticObject": "zzrsd001",
+    "action": "display",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_E277D816C5DDD091800E29E4FCF4D1D15F946EF1_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "社交电商事业部公司间价格清单",
+        "subtitle": "价格维护"
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 FUNCTION zzfm_sd_003.
 *"----------------------------------------------------------------------
-*"*"Local Interface:
+*"*"本地接口：
 *"  IMPORTING
 *"     REFERENCE(I_REQ) TYPE  ZZS_SDI003_REQ OPTIONAL
 *"  EXPORTING
@@ -66,8 +66,15 @@ FUNCTION zzfm_sd_003.
           gv_flowitem = 'A_OutbDeliveryItem'.
       ENDCASE.
     ELSE.
-      o_resp-msgty = 'E'.
-      o_resp-msgtx = '订单不存在！'.
+      SELECT SINGLE *
+               FROM i_purchaseorderapi01 WITH PRIVILEGED ACCESS
+              WHERE purchaseorder = @gv_salesdocument
+                AND purchaseordertype = 'ZT3'
+               INTO @DATA(lt_purchaseorder).
+      IF sy-subrc NE 0.
+        o_resp-msgty = 'E'.
+        o_resp-msgtx = '订单不存在！'.
+      ENDIF.
     ENDIF.
   ENDIF.
 
@@ -92,7 +99,7 @@ FUNCTION zzfm_sd_003.
 
       SELECT SINGLE a~quantitynumerator,a~quantitydenominator
         FROM i_productunitsofmeasure WITH PRIVILEGED ACCESS AS a
-        JOIN i_unitofmeasurecommercialname WITH PRIVILEGED ACCESS as b ON a~AlternativeUnit = b~UnitOfMeasure
+        JOIN i_unitofmeasurecommercialname WITH PRIVILEGED ACCESS AS b ON a~alternativeunit = b~unitofmeasure
                                                                       AND b~language = 1
        WHERE product = @ls_salesdocumentitem-product
          AND unitofmeasurecommercialname = @<fs_item>-deliveryquantityunit
@@ -124,7 +131,8 @@ FUNCTION zzfm_sd_003.
   SELECT deliverydocument,
          deliverydocumentitem,
          referencesddocument,
-         referencesddocumentitem
+         referencesddocumentitem,
+         material
     FROM i_deliverydocumentitem WITH PRIVILEGED ACCESS
    WHERE referencesddocument = @gv_salesdocument
      AND goodsmovementstatus = 'A'
@@ -158,6 +166,47 @@ FUNCTION zzfm_sd_003.
     gs_data-deliveryquantityunit = ls_tmp-deliveryquantityunit.
     gs_data-storagelocation = ls_tmp-storagelocation.
     gs_data-batch = ls_tmp-batch.
+    "优先查找SAP标准批次，标准批次未查找到则根据批次特性批次查找对应SAP批次
+    IF strlen( ls_tmp-batch ) > 10.
+      SELECT SINGLE a~material,
+                      a~batch
+              FROM i_batchcharacteristicvaluetp_2 WITH PRIVILEGED ACCESS AS a
+              JOIN i_clfncharacteristic WITH PRIVILEGED ACCESS AS b ON a~charcinternalid = b~charcinternalid
+             WHERE material = @ls_lips-material
+               AND b~characteristic = 'Z_WMSBATCH'
+               AND a~charcvalue = @ls_tmp-batch
+              INTO @DATA(ls_valuetp).
+      IF sy-subrc = 0.
+        gs_data-batch = ls_valuetp-batch.
+      ELSE.
+        o_resp-msgty  = 'E'.
+        o_resp-msgtx  = |传入批次{ ls_tmp-batch }物料{ ls_lips-material }未找到对应SAP批次|.
+        EXIT.
+      ENDIF.
+    ELSE.
+      SELECT SINGLE *
+                   FROM i_batchdistinct WITH PRIVILEGED ACCESS
+                  WHERE material = @ls_lips-material
+                    AND batch    = @gs_data-batch
+                   INTO @DATA(ls_batchdistinct).
+      IF sy-subrc NE 0.
+        SELECT SINGLE a~material,
+                      a~batch
+                FROM i_batchcharacteristicvaluetp_2 WITH PRIVILEGED ACCESS AS a
+                JOIN i_clfncharacteristic WITH PRIVILEGED ACCESS AS b ON a~charcinternalid = b~charcinternalid
+               WHERE material = @ls_lips-material
+                 AND b~characteristic = 'Z_WMSBATCH'
+                 AND a~charcvalue = @gs_data-batch
+                INTO @ls_valuetp.
+        IF sy-subrc = 0.
+          gs_data-batch = ls_valuetp-batch.
+        ELSE.
+          o_resp-msgty  = 'E'.
+          o_resp-msgtx  = |传入批次{ ls_tmp-batch }物料{ ls_lips-material }未找到对应SAP批次|.
+          EXIT.
+        ENDIF.
+      ENDIF.
+    ENDIF.
     "批次拆分
     READ TABLE lt_sub TRANSPORTING NO FIELDS WITH KEY referencesddocumentitem = ls_tmp-referencesddocumentitem  BINARY SEARCH.
     IF sy-subrc = 0.
@@ -177,6 +226,8 @@ FUNCTION zzfm_sd_003.
     ENDIF.
   ENDLOOP.
 
+
+
   "创建的交货单可能会存在多个
   DATA(lt_lips_tmp) = lt_lips.
   SORT lt_lips_tmp BY deliverydocument.
@@ -187,7 +238,28 @@ FUNCTION zzfm_sd_003.
     gv_deliverydocument = ls_lips_tmp-deliverydocument.
     "更新抬头日期
     gs_head-actualgoodsmovementdate = i_req-req-head-actualgoodsmovementdate.
+    IF i_req-req-head-deliverydocumentbysupplier = 'F241231001'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250109023'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250109006'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250108017'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250108008'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250106023'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250106002'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103055'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103050'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103044'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103043'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103027'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103012'
+    OR i_req-req-head-deliverydocumentbysupplier = 'F250103011'.
+      gs_head-actualgoodsmovementdate = '20250122'.
+    ENDIF.
     gs_head-deliverydocumentbysupplier = i_req-req-head-deliverydocumentbysupplier.
+    IF o_resp-msgty = 'E'.
+      CALL FUNCTION 'ZZFM_SD_003_DELETE'.
+      CONTINUE.
+    ENDIF.
+
     IF gs_head IS NOT INITIAL.
       gs_head-actualgoodsmovementdate = zzcl_comm_tool=>date2iso( gs_head-actualgoodsmovementdate ).
       CALL FUNCTION 'ZZFM_SD_003_HEAD'

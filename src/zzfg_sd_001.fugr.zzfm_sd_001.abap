@@ -1,6 +1,6 @@
 FUNCTION zzfm_sd_001.
 *"----------------------------------------------------------------------
-*"*"Local Interface:
+*"*"本地接口：
 *"  IMPORTING
 *"     REFERENCE(I_REQ) TYPE  ZZS_SDI001_REQ OPTIONAL
 *"  EXPORTING
@@ -79,7 +79,7 @@ FUNCTION zzfm_sd_001.
            businesspartnergrouping   TYPE string,
            businesspartnercategory   TYPE string,
            organizationbpname1       TYPE string,
-           searchterm1               TYPE string,
+           searchterm1               TYPE char20,
            formofaddress             TYPE string,
            to_businesspartneraddress TYPE TABLE OF ty_businesspartneraddres WITH EMPTY KEY,
            to_businesspartnertax     TYPE TABLE OF ty_businesspartnertax WITH EMPTY KEY,
@@ -173,7 +173,7 @@ FUNCTION zzfm_sd_001.
       ls_data-businesspartner = ls_req-businesspartner. "合作伙伴编码
       ls_data-businesspartnercategory = '2'. "业务伙伴类别
       ls_data-formofaddress = '0003'. "称谓
-      ls_data-businesspartnergrouping = 'BP02'. "业务伙伴分组
+      ls_data-businesspartnergrouping = 'Z002'. "业务伙伴分组
       ls_data-organizationbpname1 = ls_req-organizationbpname1. "组织名称 1
       ls_data-searchterm1 = ls_req-searchterm1. "搜索项 1
 
@@ -256,7 +256,7 @@ FUNCTION zzfm_sd_001.
               incotermslocation1   = ls_req-searchterm1          "国际贸易条款位置1
               shippingcondition    = '02'             "装运条件
               customerpricingprocedure = '01'         "Cust.Pric.过程
-              supplyingplant       = '1100'           "装运工厂
+              supplyingplant       = '1200'           "装运工厂
               to_salesareatax = VALUE #( ( departurecountry    = 'CN'
                                            customertaxcategory = 'TTX1'
                                            customertaxclassification = '1'
